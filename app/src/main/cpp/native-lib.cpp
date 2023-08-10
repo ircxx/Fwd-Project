@@ -34,16 +34,6 @@
 #include "Hack/Player/Player.h"
 #include "Hack/Declarations.h"
 #include "Misc/ESP.h"
-//#include "ESPManager.h"
-//#include "Hack/Player.h"
-//#include "Hack/PlayerHack.h"
-//#include "Hack/GlobalHackVars.h"
-
-
-//#include "Hack/GlobalHackVars.h"
-// the private version held by certain polarmodders has image loading and a lot more
-
-//ESPManager *espManager;
 
 EntityListManager *entityListManager;
 
@@ -132,32 +122,6 @@ void _SilentAim(void *inst, Player *damager, Vector3 origin,  Vector3 direction,
     }
 }
 
-void *Weapon = nullptr;
-void (*LocalUpdate)(void *LocalPlayer);
-void _LocalUpdate(void *LocalPlayer) {
-
-    if(LocalPlayer != nullptr) {
-
-        void *fpsWeaponHandler = *(void **)((uintptr_t)LocalPlayer + 0x10);
-        if(fpsWeaponHandler != nullptr){
-            Weapon = *(void **)((uintptr_t)fpsWeaponHandler + 0xC);
-        }
-    }
-    LocalUpdate(LocalPlayer);
-}
-
-
-void (*Fire)(void *Bullet, Vector3 origin, Vector3 hitPoint, int idk44, int xd);
-void _Fire(void *Bullet, Vector3 origin, Vector3 hitPoint, int idk44, int xd) {
-
-    void *InternalWeapon = *(void **)((uintptr_t) Bullet + 0x18);
-    if (Weapon != nullptr && InternalWeapon == Weapon) {
-        Fire(Bullet, origin, hitPoint, idk44, 2);
-    } else {
-        Fire(Bullet, origin, hitPoint, idk44, xd);
-    }
-}
-
 
 
 
@@ -179,17 +143,14 @@ void PlayerUpdate(Player *instance) {
 
 
 
-
 void (*old_GetGloveCamo)(void *inst, int CamoType);
 void GetGloveCamo(void *inst, int CamoType) {
-    //LOGI("GetGloveCamoss Type %d", CamoType);
     old_GetGloveCamo(inst, configManager->G_Config.GlovesConfig.CurrentGlovesType);
 }
 
 void (*old_GetGlovesMaterial)(void *inst, int CamoType, void *Material);
 void GetGlovesMaterial(void *inst, int CamoType, void *Material) {
-//	private GlovesController.GloveCamo KMJKJJAACKG; // 0x24
-    //LOGI("GetGlovesMaterialyesfuck Type %d", CamoType);
+
     old_GetGlovesMaterial(inst, configManager->G_Config.GlovesConfig.CurrentGlovesType, Material);
 }
 
@@ -258,9 +219,8 @@ void *hack_thread(void *)
     Pointers::LoadPointers();
     //Player::Setup();
     BNM::LoadClass MatchManager = BNM::LoadClass(OBFUSCATES_BNM(""), OBFUSCATES_BNM("MatchManager"));
-    BNM::LoadClass GlovesController = BNM::LoadClass(OBFUSCATES_BNM(""), OBFUSCATES_BNM("GlovesController"));
-    BNM::LoadClass FirstPersonHandsTexture = BNM::LoadClass(OBFUSCATES_BNM(""), OBFUSCATES_BNM("FirstPersonHandsTexture"));
 
+    BNM::LoadClass GlovesController = BNM::LoadClass(OBFUSCATES_BNM(""), OBFUSCATES_BNM("GlovesController"));
     HOOK(MatchManager.GetMethodByName(OBFUSCATES_BNM("MatchRestarted"), 0).GetOffset(), MatchRestarted, old_MatchRestarted);
     HOOK(MatchManager.GetMethodByName(OBFUSCATES_BNM("MatchCompleted"), 1).GetOffset(), MatchCompleted, old_MatchCompleted);
     HOOK(MatchManager.GetMethodByName(OBFUSCATES_BNM("OnLeftRoom"), 0).GetOffset(), MatchOnLeftRoom, old_MatchOnLeftRoom);
@@ -270,34 +230,10 @@ void *hack_thread(void *)
     HOOK(GlovesController.GetMethodByName(OBFUSCATES_BNM("GetGloveCamo"), 1).GetOffset(), GetGloveCamo, old_GetGloveCamo);
     HOOK(GlovesController.GetMethodByName(OBFUSCATES_BNM("GetGlovesMaterial"), 2).GetOffset(), GetGlovesMaterial, old_GetGlovesMaterial);
 
-
-    //HOOK(FirstPersonHandsTexture.GetMethodByName("Update", 0).GetOffset(), FirstPersonHandsTextureUpdate, old_FirstPersonHandsTextureUpdate);
-    //HOOK(GlovesController.GetMethodByName("FirstPersonGlovesMaterial", 3).GetOffset(), FirstPersonGlovesMaterial, old_FirstPersonGlovesMaterial);
-
     HOOK(Pointers::BulletManager.GetMethodByName(OBFUSCATES_BNM("FireBullet"), 5).GetOffset(), _SilentAim, SilentAim);
     HOOK(Pointers::PlayerClz.GetMethodByName(OBFUSCATES_BNM("Update"), 0).GetOffset(), PlayerUpdate, old_PlayerUpdate);
     HOOK(Pointers::PlayerClz.GetMethodByName(OBFUSCATES_BNM("OnDestroy"), 0).GetOffset(), PlayerOnDestroy, old_PlayerOnDestroy);
 
-    //HOOK(Pointers::LocalPlayer.GetMethodByName(OBFUSCATES_BNM("Update"), 0).GetOffset(), _LocalUpdate, LocalUpdate);
-
-   //HOOK(Pointers::Bullet.GetMethodByName(OBFUSCATES_BNM("Fire"), 4).GetOffset(), _Fire, Fire);
-    //DobbyHook((void *)getAbsoluteAddress("libil2cpp.so", 0x9B106C), (void *) _Fire, (void **) &Fire);
-
-    //LOGI("Start %p", BNM::offsetInLib((void *)Bootstrap.GetMethodByName("Start", 0).GetOffset()));
-   /* HOOK(Client.GetMethodByName("SetAuthData", 4).GetOffset(), Start, &old_Start);
-
-    //HOOK(Bootstrap.GetMethodByName("CheckUpdate", 0).GetOffset(), CheckUpdate, &old_CheckUpdate);
-
-
-        HOOK(Pointers::BulletManager.GetMethodByName(OBFUSCATES_BNM("FireBullet"), 5).GetOffset(), _SilentAim, SilentAim);
-    HOOK(Pointers::BulletManager.GetMethodByName(OBFUSCATES_BNM("Update"), 0).GetOffset(), _UpdateBulletManager, UpdateBulletManager);
-
-    //HOOK(Pointers::Player.GetMethodByName(OBFUSCATES_BNM("RpcSpawnGrenade"), 4).GetOffset(), _SpawnGrenade, SpawnGrenade);
-
-    HOOK(Pointers::Bullet.GetMethodByName(OBFUSCATES_BNM("Update"), 0).GetOffset(), _WTFF, WTFF);
-
-    HOOK(Pointers::Bullet.GetMethodByName(OBFUSCATES_BNM(".ctor"), 0).GetOffset(), _WTFF2, WTFF2);
-*/
     DetachIl2Cpp(); // remember to detach when you are done using bynamemodding functions
     return NULL;
 }
